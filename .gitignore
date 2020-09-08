@@ -1,0 +1,7 @@
+# IntelliJ IDEA Files
+*.iml
+*.ipr
+*.iws
+.idea
+package-lock.json
+node_modules
