@@ -1,78 +1,114 @@
 import ls from "./libs/ls.js";
-
-export function writeFile(path, data, options){
-    return new Promise((resolve, reject) => {
-        resolve(ls.set(path, data));
-    });
-}
-export function appendFile(path, data, options){
-    return new Promise((resolve, reject) => {
-        let content = ls.get(path);
-        ls.set(path, content + data);
-        resolve();
-    });
-}
-export function unlink(path){
-    return new Promise((resolve, reject) => {
-       ls.rm(path);
-       resolve();
-    });
-}
-export function readFile(path, options){
-    return new Promise((resolve, reject) => {
-        resolve(ls.get(path));
-    });
-}
-export function rename(oldPath, newPath){
-    return new Promise((resolve, reject) => {
-        ls.set(newPath,ls.get(oldPath));
-        resolve();
-    });
-}
-export function mkdir(path, options){
-    return new Promise((resolve, reject) => {
-        // 获取所有文件夹列表
-        let dirs = ls.get("dirs");
-        if (!dirs) dirs = [];
-        dirs.push(path);
-        ls.set("dirs", dirs);
-        resolve();
-    });
-}
-export function rmdir(path){
-    return new Promise((resolve, reject) => {
-        // 获取所有文件列表
-        let dirs = ls.get("dirs");
-        if (!dirs) resolve();
-        // 查找以path开头的目录
-        let endS = path.endsWith("/");
-        let endPath = endS ? path : path + "/";
-        let files = dirs.filter(path => !(path === path || path.startsWith(endPath)));
-        ls.set("dirs", files);
-        resolve();
-    });
-}
-export function readdir(path){
-    return new Promise((resolve, reject) => {
-        // 获取所有文件列表
-        let dirs = ls.get("dirs");
-        let endS = path.endsWith("/");
-        let endPath = endS ? path : path + "/";
-        // 查找以path开头的目录
-        let files = dirs.filter(path => path === path || path.startsWith(endPath)).map(path => {
-            let index = path.lastIndexOf("/");
-            return path.substring(index);
+export class FileSystem {
+    constructor({ treePrefix, pathPrefix }) {
+        this.treePrefix = treePrefix || 'dirs';
+        this.pathPrefix = pathPrefix || '';
+    }
+    writeFile(path, data, options){
+        return new Promise((resolve, reject) => {
+            // 如果文件不存在
+            if (!this._exitsPathInTree(path)) {
+                this._addPathToTree(path);
+            }
+            ls.set(this.pathPrefix + path, data);
+            resolve();
         });
-        resolve(files);
-    });
-}
+    }
+    appendFile(path, data, options){
+        return new Promise((resolve, reject) => {
+            // 如果文件不存在
+            if (!this._exitsPathInTree(path)) {
+                this._addPathToTree(path);
+            }
+            let content = ls.get(this.pathPrefix + path);
+            ls.set(this.pathPrefix + path, content + data);
+            resolve();
+        });
+    }
+    unlink(path){
+        return new Promise((resolve, reject) => {
+            ls.rm(this.pathPrefix + path);
+            resolve();
+        });
+    }
+    readFile(path, options){
+        return new Promise((resolve, reject) => {
+            resolve(ls.get(this.pathPrefix + path));
+        });
+    }
+    rename(oldPath, newPath){
+        return new Promise((resolve, reject) => {
+            ls.set(this.pathPrefix + newPath,ls.get(this.pathPrefix + oldPath));
+            ls.rm(this.pathPrefix + oldPath);
+            resolve();
+        });
+    }
+    mkdir(path, options){
+        return new Promise((resolve, reject) => {
+            this._addPathToTree(path);
+            resolve();
+        });
+    }
+    rmdir(path){
+        return new Promise((resolve, reject) => {
+            // 获取所有文件列表
+            let dirs = ls.get(this.treePrefix);
+            if (!dirs) resolve();
+            // 查找以path开头的目录
+            let endS = path.endsWith("/");
+            let endPath = endS ? path : path + "/";
+            let files = dirs.filter(path => !(path === path || path.startsWith(endPath)));
+            ls.set(this.treePrefix, files);
+            resolve();
+        });
+    }
+    readdir(path){
+        return new Promise((resolve, reject) => {
+            // 获取所有文件列表
+            let dirs = ls.get(this.treePrefix);
+            let endS = path.endsWith("/");
+            let endPath = endS ? path : path + "/";
+            // 查找以path开头的目录
+            let files = dirs.filter(path => path === path || path.startsWith(endPath)).map(path => {
+                let index = path.lastIndexOf("/");
+                return path.substring(index);
+            });
+            resolve(files);
+        });
+    }
 
-class Stats {
+    statSync(path, options) {
+        return new Stats();
+    }
+
+    _addPathToTree (path) {
+        // 获取所有文件夹列表
+        let dirs = ls.get(this.treePrefix);
+        if (!dirs) dirs = [];
+        if (dirs.find(p => p === path)) {
+            throw {
+                errno: -4075,
+                code: 'EEXIST',
+                syscall: 'mkdir',
+                path: path,
+            };
+        }
+        dirs.push(path);
+        ls.set(this.treePrefix, dirs);
+    }
+    _rmPathToTree (path) {
+
+    }
+
+    _exitsPathInTree (path) {
+        let dirs = ls.get(this.treePrefix);
+        if (!dirs) dirs = [];
+        return dirs.find(p => p === path);
+    }
+
+}
+export class Stats {
     isFile(path) {
         return true;
     }
-}
-
-export function statSync(path, options) {
-    return new Stats();
 }
