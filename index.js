@@ -28,6 +28,7 @@ export class FileSystem {
     unlink(path){
         return new Promise((resolve, reject) => {
             ls.rm(this.pathPrefix + path);
+            this._rmPathToTree(path);
             resolve();
         });
     }
@@ -40,6 +41,8 @@ export class FileSystem {
         return new Promise((resolve, reject) => {
             ls.set(this.pathPrefix + newPath,ls.get(this.pathPrefix + oldPath));
             ls.rm(this.pathPrefix + oldPath);
+            this._rmPathToTree(oldPath);
+            this._addPathToTree(newPath);
             resolve();
         });
     }
@@ -78,7 +81,7 @@ export class FileSystem {
     }
 
     statSync(path, options) {
-        return new Stats();
+        return new Stats({ treePrefix: this.treePrefix, pathPrefix: this.pathPrefix });
     }
 
     _addPathToTree (path) {
@@ -97,7 +100,11 @@ export class FileSystem {
         ls.set(this.treePrefix, dirs);
     }
     _rmPathToTree (path) {
-
+        let dirs = ls.get(this.treePrefix);
+        if (dirs) {
+            dirs = dirs.filter(p => p === path);
+            ls.set(this.treePrefix, dirs);
+        }
     }
 
     _exitsPathInTree (path) {
@@ -108,7 +115,13 @@ export class FileSystem {
 
 }
 export class Stats {
+    constructor({ treePrefix, pathPrefix }) {
+        this.treePrefix = treePrefix || 'dirs';
+        this.pathPrefix = pathPrefix || '';
+    }
+
     isFile(path) {
-        return true;
+        if (ls.get(this.pathPrefix + path)) return true;
+        return false;
     }
 }
