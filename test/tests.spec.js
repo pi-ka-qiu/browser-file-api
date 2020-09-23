@@ -6,9 +6,11 @@ describe('file', function() {
         await fs.rmdir("/test");
         await fs.mkdir("/test/dir1");
         await fs.mkdir("/test/dir2");
-        await fs.mkdir("/test/dir2");
+        await fs.mkdir("/test/dir3");
         const dirs = await fs.readdir("/test");
-        assert.equal(dirs.length, 3)
+        const isFile = fs.statSync("/test/dir2").isFile();
+        assert.equal(dirs.length, 3);
+        assert.equal(isFile, false);
     });
 
     it('writeFile，appendFile, readFile 成功', async function() {
@@ -21,6 +23,8 @@ describe('file', function() {
         wContent += "世界";
         await fs.appendFile(path, "世界");
         content = await fs.readFile(path);
+        const isFile = fs.statSync(path).isFile();
+        assert.equal(isFile, true);
         assert.equal(content, wContent);
     });
 

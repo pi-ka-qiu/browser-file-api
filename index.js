@@ -87,7 +87,7 @@ export class FileSystem {
     }
 
     statSync(path, options) {
-        return new Stats({ treePrefix: this.treePrefix, pathPrefix: this.pathPrefix });
+        return new Stats({ treePrefix: this.treePrefix, pathPrefix: this.pathPrefix, path });
     }
 
     _addPathToTree (path) {
@@ -121,13 +121,15 @@ export class FileSystem {
 
 }
 export class Stats {
-    constructor({ treePrefix, pathPrefix }) {
+    constructor({ treePrefix, pathPrefix, path }) {
         this.treePrefix = treePrefix || 'dirs';
         this.pathPrefix = pathPrefix || '';
+        this.path = path;
     }
 
-    isFile(path) {
-        if (ls.get(this.pathPrefix + path)) return true;
+    isFile() {
+        console.log(this.pathPrefix + this.path)
+        if (ls.get(this.pathPrefix + this.path)) return true;
         return false;
     }
 }
