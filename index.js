@@ -72,9 +72,15 @@ export class FileSystem {
             let endS = path.endsWith("/");
             let endPath = endS ? path : path + "/";
             // 查找以path开头的目录
-            let files = dirs.filter(path => path === path || path.startsWith(endPath)).map(path => {
+            let files = dirs.filter(dPath => dPath === path || dPath.startsWith(endPath)).map(path => {
                 let index = path.lastIndexOf("/");
-                return path.substring(index);
+                console.log(path, index)
+                let p = path.substring(endPath.length);
+                let pIndex = p.indexOf("/");
+                if (pIndex > -1) {
+                    return p.substring(0, pIndex);
+                }
+                return p;
             });
             resolve(files);
         });
