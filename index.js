@@ -34,11 +34,27 @@ export class FileSystem {
     }
     readFile(path, options){
         return new Promise((resolve, reject) => {
+            if(!this._exitsPathInTree(path)) {
+                throw {
+                    errno: -4075,
+                    code: 'ENOENT',
+                    syscall: 'readFile',
+                    path: path,
+                };
+            }
             resolve(ls.get(this.pathPrefix + path));
         });
     }
     rename(oldPath, newPath){
         return new Promise((resolve, reject) => {
+            if(!this._exitsPathInTree(oldPath)) {
+                throw {
+                    errno: -4075,
+                    code: 'ENOENT',
+                    syscall: 'rename',
+                    path: oldPath,
+                };
+            }
             ls.set(this.pathPrefix + newPath,ls.get(this.pathPrefix + oldPath));
             ls.rm(this.pathPrefix + oldPath);
             this._rmPathToTree(oldPath);
@@ -87,6 +103,14 @@ export class FileSystem {
     }
 
     statSync(path, options) {
+        if(!this._exitsPathInTree(path)) {
+            throw {
+                errno: -2,
+                code: 'ENOENT',
+                syscall: 'stat',
+                path: path,
+            };
+        }
         return new Stats({ treePrefix: this.treePrefix, pathPrefix: this.pathPrefix, path });
     }
 
