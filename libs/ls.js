@@ -16,6 +16,10 @@ const ls = {
     },
     rm: function (variable) {
         return localStorage.removeItem(variable.toString());
+    },
+    exist: function (variable) {
+        var content = localStorage.getItem(variable.toString());
+        return content && content.length;
     }
 };
 
