@@ -1,4 +1,4 @@
-import ls from "./ls";
+import ls from "./ls.js";
 
 export function _addPathToTree({path, treePrefix}) {
   // 获取所有文件夹列表
@@ -121,7 +121,7 @@ export function readFile({path, options, pathPrefix, treePrefix}) {
 
 export function rename({oldPath, newPath, pathPrefix, treePrefix}) {
   return new Promise((resolve, reject) => {
-    if (!_existPathInTree({oldPath, treePrefix})) {
+    if (!_existPathInTree({path: oldPath, treePrefix})) {
       throw {
         errno: -4075,
         code: 'ENOENT',
@@ -131,8 +131,8 @@ export function rename({oldPath, newPath, pathPrefix, treePrefix}) {
     }
     ls.set(pathPrefix + newPath, ls.get(pathPrefix + oldPath));
     ls.rm(pathPrefix + oldPath);
-    _rmPathToTree({oldPath, treePrefix});
-    _addPathToTree({newPath, treePrefix});
+    _rmPathToTree({path: oldPath, treePrefix});
+    _addPathToTree({path: newPath, treePrefix});
     resolve();
   });
 }

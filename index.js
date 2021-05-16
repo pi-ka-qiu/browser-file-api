@@ -25,7 +25,7 @@ export class FileSystem {
   }
 
   appendFile(path, data, options) {
-    return appendFile({path, options, pathPrefix: this.pathPrefix, treePrefix: this.treePrefix});
+    return appendFile({path, data, options, pathPrefix: this.pathPrefix, treePrefix: this.treePrefix});
   }
 
   readFile(path, options) {
