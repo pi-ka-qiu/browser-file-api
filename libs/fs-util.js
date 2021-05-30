@@ -136,8 +136,3 @@ export function rename({oldPath, newPath, pathPrefix, treePrefix}) {
     resolve();
   });
 }
-
-
-
-
-
